@@ -1,4 +1,4 @@
-# Phala JS SDK Example
+# Red Packet DAPP
 
 ## Environment Variables
 
