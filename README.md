@@ -1,8 +1,11 @@
-# Phala JS SDK
+# Redpacket DAPP
 
-> ⚠️ This package is under developing, and some features might change in the future.
+This project is forked from [Phala-Network/js-sdk](https://github.com/Phala-Network/js-sdk), and source code is located at [here](packages/example).
 
-JavaScript SDK for Phala.
+Run following lines to launch the DAPP:
 
-- [SDK Package 🔗](packages/sdk)
-- [Example 🔗](packages/example)
+```bash
+cd packages/example
+yarn install
+yarn dev
+```
