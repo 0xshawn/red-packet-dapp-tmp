@@ -17,7 +17,7 @@ const Layout: FC<{title?: string}> = ({title, children}) => {
 
       <Block
         as="header"
-        height="120px"
+        height="100px"
         display="flex"
         alignItems="center"
         justifyContent="space-between"

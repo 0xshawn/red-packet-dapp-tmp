@@ -1,4 +1,5 @@
 import {useEffect, useState} from 'react'
+import {FormEventHandler, useCallback, useRef} from 'react'
 import type {ApiPromise} from '@polkadot/api'
 import {
   create as createPhala,
@@ -10,41 +11,53 @@ import {
 import {MoneyCollectOutlined, RightOutlined} from '@ant-design/icons'
 import {enablePolkadotExtension} from 'lib/polkadotExtension'
 import {createApi} from 'lib/polkadotApi'
+import {useAtom} from 'jotai'
+import accountAtom from 'atoms/account'
+import {getSigner} from 'lib/polkadotExtension'
+import {toaster} from 'baseui/toast'
 
 const baseURL = '/'
 
-export default function RedPacket() {
-  const [api, setApi] = useState<ApiPromise>()
-  const [phala, setPhala] = useState<PhalaInstance>()
+const RedPacket = ({api, phala}: {api: ApiPromise; phala: PhalaInstance}) => {
+  const [account] = useAtom(accountAtom)
+  const [number, setNumber] = useState('')
+  const [certificateData, setCertificateData] = useState<CertificateData>()
+  const [signCertificateLoading, setSignCertificateLoading] = useState(false)
+  const [guessLoading, setGuessLoading] = useState(false)
+  const [owner, setOwner] = useState('')
+  const unsubscribe = useRef<() => void>()
 
-  // useEffect(() => {
-  //   // Create a polkaDot API instance with custom types
-  //   createApi({
-  //     endpoint: 'ws://rpc.wayknew.com:19944',
-  //     types: {
-  //       TemplateRequestData: {_enum: {Foo: null}},
-  //       TemplateResponseData: {
-  //         _enum: {Bar: null},
-  //       },
-  //       TemplateRequest: {
-  //         head: 'ContractQueryHead',
-  //         data: 'TemplateRequestData',
-  //       },
-  //       TemplateResponse: {
-  //         nonce: '[u8; 32]',
-  //         result: 'Result<TemplateResponseData>',
-  //       },
-  //       TemplateCommand: {_enum: {Foo: null}},
-  //     },
-  //   }).then((api) => {
-  //     // setApi(api)
+  useEffect(() => {
+    const _unsubscribe = unsubscribe.current
+    return () => {
+      api?.disconnect()
+      _unsubscribe?.()
+    }
+  }, [api])
 
-  //     // // Create a Phala instance
-  //     // return createPhala({api, baseURL}).then((phala) => {
-  //     //   setPhala(() => phala)
-  //     // })
-  //   })
-  // }, [])
+  useEffect(() => {
+    setCertificateData(undefined)
+  }, [account])
+
+  const onSignCertificate = useCallback(async () => {
+    if (account) {
+      setSignCertificateLoading(true)
+      try {
+        const signer = await getSigner(account)
+        setCertificateData(
+          await signCertificate({
+            api,
+            account,
+            signer,
+          })
+        )
+        toaster.positive('Certificate signed', {})
+      } catch (err) {
+        toaster.negative((err as Error).message, {})
+      }
+      setSignCertificateLoading(false)
+    }
+  }, [api, account])
 
   return (
     <div>
@@ -57,7 +70,7 @@ export default function RedPacket() {
               <div className="redpacket-desc">Get random red packet!</div>
               <button className="redpacket-get">
                 <MoneyCollectOutlined />
-                &nbsp; I'm Lucky
+                &nbsp; I&apos;m Lucky
               </button>
               <div className="redpacket-donate">
                 <RightOutlined />
@@ -70,3 +83,7 @@ export default function RedPacket() {
     </div>
   )
 }
+
+RedPacket.title = 'Red Packet'
+
+export default RedPacket
