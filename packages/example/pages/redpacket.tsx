@@ -15,6 +15,7 @@ import {useAtom} from 'jotai'
 import accountAtom from 'atoms/account'
 import {getSigner} from 'lib/polkadotExtension'
 import {toaster} from 'baseui/toast'
+import {numberToHex, hexAddPrefix, u8aToHex} from '@polkadot/util'
 
 const baseURL = '/'
 
@@ -59,6 +60,58 @@ const RedPacket = ({api, phala}: {api: ApiPromise; phala: PhalaInstance}) => {
     }
   }, [api, account])
 
+  const onGuess = useCallback<FormEventHandler<HTMLFormElement>>(
+    (e) => {
+      e.preventDefault()
+      if (!certificateData) return
+      setGuessLoading(true)
+      const encodedQuery = api
+        .createType('GuessNumberRequest', {
+          head: {
+            id: numberToHex(CONTRACT_ID, 256),
+            nonce: hexAddPrefix(randomHex(32)),
+          },
+          data: {
+            guess: {
+              guess_number: Number(number),
+            },
+          },
+        })
+        .toHex()
+
+      phala
+        .query(encodedQuery, certificateData)
+        .then((data: any) => {
+          const {
+            result: {ok, err},
+          } = api
+            .createType('GuessNumberResponse', hexAddPrefix(data))
+            .toJSON() as any
+
+          if (ok) {
+            const {guessResult} = ok
+            if (guessResult === 'Correct') {
+              toaster.positive('Correct!', {})
+              setNumber('')
+            } else {
+              toaster.info(guessResult, {})
+            }
+          }
+
+          if (err) {
+            throw new Error(err)
+          }
+        })
+        .catch((err: Error) => {
+          toaster.negative((err as Error).message, {})
+        })
+        .finally(() => {
+          setGuessLoading(false)
+        })
+    },
+    [phala, api, number, certificateData]
+  )
+
   return (
     <div>
       <div className="redpacket-row">
@@ -66,7 +119,7 @@ const RedPacket = ({api, phala}: {api: ApiPromise; phala: PhalaInstance}) => {
           <div className="redpacket-wrapper">
             <div className="redpacket">
               <div className="redpacket-balance-label">PHA Left</div>
-              <div className="redpacket-balance">100 PHA</div>
+              <div className="redpacket-balance">100000000</div>
               <div className="redpacket-desc">Get random red packet!</div>
               <button className="redpacket-get">
                 <MoneyCollectOutlined />
