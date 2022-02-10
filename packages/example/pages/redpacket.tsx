@@ -119,7 +119,7 @@ const RedPacket = ({api, phala}: {api: ApiPromise; phala: PhalaInstance}) => {
           <div className="redpacket-wrapper">
             <div className="redpacket">
               <div className="redpacket-balance-label">PHA Left</div>
-              <div className="redpacket-balance">100000000</div>
+              <div className="redpacket-balance">237.5</div>
               <div className="redpacket-desc">Get random red packet!</div>
               <button className="redpacket-get">
                 <MoneyCollectOutlined />
